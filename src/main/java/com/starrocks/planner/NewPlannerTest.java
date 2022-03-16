@@ -14,9 +14,15 @@
 
 package com.starrocks.planner;
 
+import org.apache.commons.cli.ParseException;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.BasicParser;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.CommandLine;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -153,27 +159,40 @@ public class NewPlannerTest {
         return Optional.empty();
     }
 
-    public static void main(String[] args) {
-        if (args.length < 1) {
-            LOGGER.error("Usage：java -jar cbo_planner_test.jar fe.audit.log_path");
-            System.exit(-1);
-        }
+    public static void main(String[] args) throws ParseException, IOException {
+        CommandLineParser parser = new BasicParser();
+        Options options = new Options();
+        options.addOption("h", "help", false, "Print this usage information");
+        options.addOption("benchmark", false, "Print benchmark information");
+        options.addOption("diff", false, "Diff result with new and old planner");
+        options.addOption("f", "file", true, "Audit file path");
+        options.addOption("cmp", false, "Performance comparison");
+        options.addOption("ov", true, "Performance comparison");
+        options.addOption("nv", true, "Performance comparison");
 
-        try {
-            Thread.sleep(5000);
-            Config.init();
-            SQLog.init();
-            NewPlannerTest.init();
+        CommandLine commandLine = parser.parse(options, args);
 
-            LOGGER.info("config init done");
-            String logPath = args[0];
+        if (commandLine.hasOption("benchmark")) {
+            BenchmarkTest.bench(commandLine.getOptionValue("file"));
+        } else if (commandLine.hasOption("cmp")){
+            BenchmarkCmp.cmp(commandLine.getOptionValue("ov"), commandLine.getOptionValue("nv"));
+        } else if (commandLine.hasOption('d')) {
+            try {
+                Thread.sleep(5000);
+                Config.init();
+                SQLog.init();
+                NewPlannerTest.init();
 
-            new StarrocksUtils().init();
-            LOGGER.info("connection init done");
-            StarrocksUtils.exportStatistics();
-            readAuditLog(logPath);
-        } catch (Throwable e) {
-            LOGGER.error("error : " + e.getMessage(), e);
+                LOGGER.info("config init done");
+                String logPath = args[0];
+
+                new StarrocksUtils().init();
+                LOGGER.info("connection init done");
+                StarrocksUtils.exportStatistics();
+                readAuditLog(logPath);
+            } catch (Throwable e) {
+                LOGGER.error("error : " + e.getMessage(), e);
+            }
         }
     }
 }
