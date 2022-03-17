@@ -31,8 +31,20 @@ COLLECT_STATISTIC = true
 The config.properties file needs to be located in the same directory with the cbo_planner_test.jar file
 
 ```dtd
-java -jar cbo_planner_test.jar $fe.audit.log.path
+java -jar cbo_planner_test.jar -f $fe.audit.log.path
 ```
+
+Analyze SQL Digest and generate reports
+```
+java -jar cbo_planner_test.jar -f $fe.audit.log.path --benchmark
+```
+
+Comparative performance report
+```
+java -jar cbo_planner_test.jar -f $fe.audit.log.path --cmp --ov old_version_benchmark_file --nv new_version_benchmark_file
+```
+The benchmark file is the output of --benchmark, and the output can be redirected to a file, 
+such as ```java -jar cbo_planner_test.jar -f $fe.audit.log.path --benchmark >new_version_benchmark_file```
 
 ## 4 Analysis
 The SQL with different execution results or poor performance of the new Planner will be recorded in the result folder
